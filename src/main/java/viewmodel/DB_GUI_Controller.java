@@ -4,6 +4,7 @@ import dao.DbConnectivityClass;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -12,6 +13,9 @@ import javafx.stage.FileChooser;
 import model.Major;
 import model.Person;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.stage.Stage;
+import javafx.scene.Parent;
+import javafx.fxml.FXMLLoader;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -24,11 +28,12 @@ public class DB_GUI_Controller {
     @FXML private TableView<Person> tv;
     @FXML private TableColumn<Person, String> colFirstName, colLastName, colDepartment, colMajor, colEmail;
     @FXML private TableColumn<Person, ImageView> colImage;
-    @FXML private Button btnAdd, btnEdit, btnDelete;
+    @FXML private Button btnAdd, btnEdit, btnDelete, btnToggleTheme;
     @FXML private Label lblStatus;
 
     private final DbConnectivityClass db = new DbConnectivityClass();
     private ObservableList<Person> dataList = FXCollections.observableArrayList();
+    private boolean darkMode = false;
 
     @FXML
     public void initialize() {
@@ -51,6 +56,12 @@ public class DB_GUI_Controller {
         });
 
         tv.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> updateFormFields(newSel));
+        tv.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2 && tv.getSelectionModel().getSelectedItem() != null) {
+                updateFormFields(tv.getSelectionModel().getSelectedItem());
+            }
+        });
+
         updateButtonState();
         loadData();
     }
@@ -82,6 +93,15 @@ public class DB_GUI_Controller {
         btnDelete.setDisable(!hasSelection);
     }
 
+    private void clearFormFields() {
+        txtFirstName.clear();
+        txtLastName.clear();
+        txtDepartment.clear();
+        cbxMajor.setValue(null);
+        txtEmail.clear();
+        txtImageUrl.clear();
+    }
+
     @FXML
     private void addPerson() {
         Person p = new Person(
@@ -109,9 +129,15 @@ public class DB_GUI_Controller {
                     txtEmail.getText(),
                     txtImageUrl.getText()
             );
+            updated.setId(selected.getId());
             db.editUser(selected.getId(), updated);
-            loadData();
+            int selectedIndex = tv.getSelectionModel().getSelectedIndex();
+            dataList.set(selectedIndex, updated);
+            tv.refresh();
+            tv.getSelectionModel().clearSelection();
+            clearFormFields();
             lblStatus.setText("Status: Edited user");
+            updateButtonState();
         }
     }
 
@@ -122,7 +148,10 @@ public class DB_GUI_Controller {
             db.deleteRecord(selected);
             dataList.remove(selected);
             tv.refresh();
+            tv.getSelectionModel().clearSelection();
+            clearFormFields();
             lblStatus.setText("Status: Deleted user");
+            updateButtonState();
         }
     }
 
@@ -171,6 +200,21 @@ public class DB_GUI_Controller {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @FXML
+    private void toggleTheme() {
+        Scene scene = btnToggleTheme.getScene();
+        if (scene != null) {
+            if (darkMode) {
+                scene.getStylesheets().remove("/view/light-theme.css");
+                scene.getStylesheets().add("/view/dark-theme.css");
+            } else {
+                scene.getStylesheets().remove("/view/dark-theme.css");
+                scene.getStylesheets().add("/view/light-theme.css");
+            }
+            darkMode = !darkMode;
         }
     }
 }
