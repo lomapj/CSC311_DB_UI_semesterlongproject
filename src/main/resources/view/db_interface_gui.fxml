@@ -1,65 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="viewmodel.DB_GUI_Controller" spacing="10.0" padding="10.0,10.0,10.0,10.0">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="viewmodel.DB_GUI_Controller">
+    <top>
+        <VBox spacing="10" style="-fx-padding: 10;">
+            <HBox spacing="10">
+                <TextField fx:id="txtFirstName" promptText="First Name"/>
+                <TextField fx:id="txtLastName" promptText="Last Name"/>
+                <TextField fx:id="txtDepartment" promptText="Department"/>
+            </HBox>
+            <HBox spacing="10">
+                <ComboBox fx:id="cbxMajor" promptText="Select Major"/>
+                <TextField fx:id="txtEmail" promptText="Email"/>
+                <TextField fx:id="txtImageUrl" promptText="Image URL"/>
+            </HBox>
+            <HBox spacing="10">
+                <Button text="Add" fx:id="btnAdd" onAction="#addPerson"/>
+                <Button text="Edit" fx:id="btnEdit" onAction="#editButtonClick"/>
+                <Button text="Delete" fx:id="btnDelete" onAction="#deleteButtonClick"/>
+                <Button text="Import CSV" onAction="#importCSV"/>
+                <Button text="Export CSV" onAction="#exportCSV"/>
+            </HBox>
+            <Label fx:id="lblStatus" text="Status: Ready"/>
+        </VBox>
+    </top>
 
-    <MenuBar>
-        <menus>
-            <Menu text="File">
-                <items>
-                    <MenuItem text="Import CSV" onAction="#importCSV"/>
-                    <MenuItem text="Export CSV" onAction="#exportCSV"/>
-                </items>
-            </Menu>
-        </menus>
-    </MenuBar>
+    <center>
+        <TableView fx:id="tv" prefHeight="400">
+            <columns>
+                <TableColumn fx:id="colFirstName" text="First Name"/>
+                <TableColumn fx:id="colLastName" text="Last Name"/>
+                <TableColumn fx:id="colDepartment" text="Department"/>
+                <TableColumn fx:id="colMajor" text="Major"/>
+                <TableColumn fx:id="colEmail" text="Email"/>
+                <TableColumn fx:id="colImage" text="Image"/>
+            </columns>
+        </TableView>
+    </center>
 
-    <GridPane hgap="10" vgap="10">
-        <children>
-            <Label text="First Name:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-            <TextField fx:id="txtFirstName" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-
-            <Label text="Last Name:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-            <TextField fx:id="txtLastName" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
-            <Label text="Department:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-            <TextField fx:id="txtDepartment" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-
-            <Label text="Major:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-            <ComboBox fx:id="cbxMajor" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-
-            <Label text="Email:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-            <TextField fx:id="txtEmail" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
-
-            <Label text="Image URL:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-            <TextField fx:id="txtImageUrl" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
-        </children>
-    </GridPane>
-
-    <HBox spacing="10">
-        <children>
-            <Button fx:id="btnAdd" text="Add" onAction="#addPerson"/>
-            <Button fx:id="btnEdit" text="Edit" onAction="#editButtonClick"/>
-            <Button fx:id="btnDelete" text="Delete" onAction="#deleteButtonClick"/>
-        </children>
-    </HBox>
-
-    <TableView fx:id="tv">
-        <columns>
-            <TableColumn fx:id="colFirstName" text="First Name"/>
-            <TableColumn fx:id="colLastName" text="Last Name"/>
-            <TableColumn fx:id="colDepartment" text="Department"/>
-            <TableColumn fx:id="colMajor" text="Major"/>
-            <TableColumn fx:id="colEmail" text="Email"/>
-            <TableColumn fx:id="colImage" text="Image"/>
-        </columns>
-    </TableView>
-
-    <Label fx:id="lblStatus" text="Status: Ready"/>
-</VBox>
-
+    <right>
+        <PieChart fx:id="pieChart" prefWidth="300" />
+    </right>
+</BorderPane>
