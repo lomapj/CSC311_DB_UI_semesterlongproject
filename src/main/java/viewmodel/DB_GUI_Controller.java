@@ -1,232 +1,176 @@
 package viewmodel;
 
 import dao.DbConnectivityClass;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import model.Major;
 import model.Person;
-import service.MyLogger;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 
-import java.io.File;
-import java.net.URL;
-import java.time.LocalDate;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.io.*;
+import java.nio.file.Files;
+import java.util.List;
 
-public class DB_GUI_Controller implements Initializable {
+public class DB_GUI_Controller {
 
-    @FXML
-    TextField first_name, last_name, department, major, email, imageURL;
-    @FXML
-    ImageView img_view;
-    @FXML
-    MenuBar menuBar;
-    @FXML
-    private TableView<Person> tv;
-    @FXML
-    private TableColumn<Person, Integer> tv_id;
-    @FXML
-    private TableColumn<Person, String> tv_fn, tv_ln, tv_department, tv_major, tv_email;
-    private final DbConnectivityClass cnUtil = new DbConnectivityClass();
-    private final ObservableList<Person> data = cnUtil.getData();
+    @FXML private TextField txtFirstName, txtLastName, txtDepartment, txtEmail, txtImageUrl;
+    @FXML private ComboBox<Major> cbxMajor;
+    @FXML private TableView<Person> tv;
+    @FXML private TableColumn<Person, String> colFirstName, colLastName, colDepartment, colMajor, colEmail;
+    @FXML private TableColumn<Person, ImageView> colImage;
+    @FXML private Button btnAdd, btnEdit, btnDelete;
+    @FXML private Label lblStatus;
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        try {
-            tv_id.setCellValueFactory(new PropertyValueFactory<>("id"));
-            tv_fn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
-            tv_ln.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-            tv_department.setCellValueFactory(new PropertyValueFactory<>("department"));
-            tv_major.setCellValueFactory(new PropertyValueFactory<>("major"));
-            tv_email.setCellValueFactory(new PropertyValueFactory<>("email"));
-            tv.setItems(data);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+    private final DbConnectivityClass db = new DbConnectivityClass();
+    private ObservableList<Person> dataList = FXCollections.observableArrayList();
 
     @FXML
-    protected void addNewRecord() {
+    public void initialize() {
+        cbxMajor.setItems(FXCollections.observableArrayList(Major.values()));
 
-            Person p = new Person(first_name.getText(), last_name.getText(), department.getText(),
-                    major.getText(), email.getText(), imageURL.getText());
-            cnUtil.insertUser(p);
-            cnUtil.retrieveId(p);
-            p.setId(cnUtil.retrieveId(p));
-            data.add(p);
-            clearForm();
-
-    }
-
-    @FXML
-    protected void clearForm() {
-        first_name.setText("");
-        last_name.setText("");
-        department.setText("");
-        major.setText("");
-        email.setText("");
-        imageURL.setText("");
-    }
-
-    @FXML
-    protected void logOut(ActionEvent actionEvent) {
-        try {
-            Parent root = FXMLLoader.load(getClass().getResource("/view/login.fxml"));
-            Scene scene = new Scene(root, 900, 600);
-            scene.getStylesheets().add(getClass().getResource("/css/lightTheme.css").getFile());
-            Stage window = (Stage) menuBar.getScene().getWindow();
-            window.setScene(scene);
-            window.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    protected void closeApplication() {
-        System.exit(0);
-    }
-
-    @FXML
-    protected void displayAbout() {
-        try {
-            Parent root = FXMLLoader.load(getClass().getResource("/view/about.fxml"));
-            Stage stage = new Stage();
-            Scene scene = new Scene(root, 600, 500);
-            stage.setScene(scene);
-            stage.showAndWait();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    protected void editRecord() {
-        Person p = tv.getSelectionModel().getSelectedItem();
-        int index = data.indexOf(p);
-        Person p2 = new Person(index + 1, first_name.getText(), last_name.getText(), department.getText(),
-                major.getText(), email.getText(),  imageURL.getText());
-        cnUtil.editUser(p.getId(), p2);
-        data.remove(p);
-        data.add(index, p2);
-        tv.getSelectionModel().select(index);
-    }
-
-    @FXML
-    protected void deleteRecord() {
-        Person p = tv.getSelectionModel().getSelectedItem();
-        int index = data.indexOf(p);
-        cnUtil.deleteRecord(p);
-        data.remove(index);
-        tv.getSelectionModel().select(index);
-    }
-
-    @FXML
-    protected void showImage() {
-        File file = (new FileChooser()).showOpenDialog(img_view.getScene().getWindow());
-        if (file != null) {
-            img_view.setImage(new Image(file.toURI().toString()));
-        }
-    }
-
-    @FXML
-    protected void addRecord() {
-        showSomeone();
-    }
-
-    @FXML
-    protected void selectedItemTV(MouseEvent mouseEvent) {
-        Person p = tv.getSelectionModel().getSelectedItem();
-        first_name.setText(p.getFirstName());
-        last_name.setText(p.getLastName());
-        department.setText(p.getDepartment());
-        major.setText(p.getMajor());
-        email.setText(p.getEmail());
-        imageURL.setText(p.getImageURL());
-    }
-
-    public void lightTheme(ActionEvent actionEvent) {
-        try {
-            Scene scene = menuBar.getScene();
-            Stage stage = (Stage) scene.getWindow();
-            stage.getScene().getStylesheets().clear();
-            scene.getStylesheets().add(getClass().getResource("/css/lightTheme.css").toExternalForm());
-            stage.setScene(scene);
-            stage.show();
-            System.out.println("light " + scene.getStylesheets());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void darkTheme(ActionEvent actionEvent) {
-        try {
-            Stage stage = (Stage) menuBar.getScene().getWindow();
-            Scene scene = stage.getScene();
-            scene.getStylesheets().clear();
-            scene.getStylesheets().add(getClass().getResource("/css/darkTheme.css").toExternalForm());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void showSomeone() {
-        Dialog<Results> dialog = new Dialog<>();
-        dialog.setTitle("New User");
-        dialog.setHeaderText("Please specify…");
-        DialogPane dialogPane = dialog.getDialogPane();
-        dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        TextField textField1 = new TextField("Name");
-        TextField textField2 = new TextField("Last Name");
-        TextField textField3 = new TextField("Email ");
-        ObservableList<Major> options =
-                FXCollections.observableArrayList(Major.values());
-        ComboBox<Major> comboBox = new ComboBox<>(options);
-        comboBox.getSelectionModel().selectFirst();
-        dialogPane.setContent(new VBox(8, textField1, textField2,textField3, comboBox));
-        Platform.runLater(textField1::requestFocus);
-        dialog.setResultConverter((ButtonType button) -> {
-            if (button == ButtonType.OK) {
-                return new Results(textField1.getText(),
-                        textField2.getText(), comboBox.getValue());
+        colFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        colLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        colDepartment.setCellValueFactory(new PropertyValueFactory<>("department"));
+        colMajor.setCellValueFactory(new PropertyValueFactory<>("major"));
+        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colImage.setCellValueFactory(cellData -> {
+            String url = cellData.getValue().getImageURL();
+            ImageView imageView;
+            try {
+                imageView = new ImageView(new Image(url, 100, 100, true, true));
+            } catch (Exception e) {
+                imageView = new ImageView();
             }
-            return null;
+            return new ReadOnlyObjectWrapper<>(imageView);
         });
-        Optional<Results> optionalResult = dialog.showAndWait();
-        optionalResult.ifPresent((Results results) -> {
-            MyLogger.makeLog(
-                    results.fname + " " + results.lname + " " + results.major);
-        });
+
+        tv.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> updateFormFields(newSel));
+        updateButtonState();
+        loadData();
     }
 
-    private static enum Major {Business, CSC, CPIS}
+    private void loadData() {
+        dataList.setAll(db.getData());
+        tv.setItems(dataList);
+        tv.refresh();
+    }
 
-    private static class Results {
+    private void updateFormFields(Person person) {
+        boolean hasSelection = person != null;
+        txtFirstName.setText(hasSelection ? person.getFirstName() : "");
+        txtLastName.setText(hasSelection ? person.getLastName() : "");
+        txtDepartment.setText(hasSelection ? person.getDepartment() : "");
+        try {
+            cbxMajor.setValue(hasSelection && person.getMajor() != null ? Major.valueOf(person.getMajor().toUpperCase()) : null);
+        } catch (IllegalArgumentException e) {
+            cbxMajor.setValue(null);
+        }
+        txtEmail.setText(hasSelection ? person.getEmail() : "");
+        txtImageUrl.setText(hasSelection ? person.getImageURL() : "");
+        updateButtonState();
+    }
 
-        String fname;
-        String lname;
-        Major major;
+    private void updateButtonState() {
+        boolean hasSelection = tv.getSelectionModel().getSelectedItem() != null;
+        btnEdit.setDisable(!hasSelection);
+        btnDelete.setDisable(!hasSelection);
+    }
 
-        public Results(String name, String date, Major venue) {
-            this.fname = name;
-            this.lname = date;
-            this.major = venue;
+    @FXML
+    private void addPerson() {
+        Person p = new Person(
+                txtFirstName.getText(),
+                txtLastName.getText(),
+                txtDepartment.getText(),
+                cbxMajor.getValue() != null ? cbxMajor.getValue().toString() : "",
+                txtEmail.getText(),
+                txtImageUrl.getText()
+        );
+        db.insertUser(p);
+        loadData();
+        lblStatus.setText("Status: Added user");
+    }
+
+    @FXML
+    private void editButtonClick() {
+        Person selected = tv.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            Person updated = new Person(
+                    txtFirstName.getText(),
+                    txtLastName.getText(),
+                    txtDepartment.getText(),
+                    cbxMajor.getValue() != null ? cbxMajor.getValue().toString() : "",
+                    txtEmail.getText(),
+                    txtImageUrl.getText()
+            );
+            db.editUser(selected.getId(), updated);
+            loadData();
+            lblStatus.setText("Status: Edited user");
         }
     }
 
+    @FXML
+    private void deleteButtonClick() {
+        Person selected = tv.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            db.deleteRecord(selected);
+            dataList.remove(selected);
+            tv.refresh();
+            lblStatus.setText("Status: Deleted user");
+        }
+    }
+
+    @FXML
+    private void importCSV() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Import CSV");
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] tokens = line.split(",");
+                    if (tokens.length >= 6) {
+                        Person p = new Person(tokens[0], tokens[1], tokens[2], tokens[3], tokens[4], tokens[5]);
+                        db.insertUser(p);
+                    }
+                }
+                loadData();
+                lblStatus.setText("Status: Imported CSV");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @FXML
+    private void exportCSV() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export CSV");
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                for (Person p : dataList) {
+                    bw.write(String.join(",",
+                            p.getFirstName(),
+                            p.getLastName(),
+                            p.getDepartment(),
+                            p.getMajor(),
+                            p.getEmail(),
+                            p.getImageURL()
+                    ));
+                    bw.newLine();
+                }
+                lblStatus.setText("Status: Exported CSV");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

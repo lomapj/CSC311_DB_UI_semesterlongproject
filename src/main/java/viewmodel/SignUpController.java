@@ -1,18 +1,46 @@
 package viewmodel;
 
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+import java.util.prefs.Preferences;
+
 public class SignUpController {
+
+    @FXML
+    private TextField usernameField;
+
+    @FXML
+    private PasswordField passwordField;
+
     public void createNewAccount(ActionEvent actionEvent) {
+        String username = usernameField.getText();
+        String password = passwordField.getText();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Username and password cannot be empty.");
+            alert.showAndWait();
+            return;
+        }
+
+        Preferences prefs = Preferences.userNodeForPackage(SignUpController.class);
+        prefs.put("savedUsername", username);
+        prefs.put("savedPassword", password);
+
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setContentText("Info for the user. Message goes here");
+        alert.setContentText("Account created successfully.");
         alert.showAndWait();
+
+        goBack(actionEvent);
     }
 
     public void goBack(ActionEvent actionEvent) {

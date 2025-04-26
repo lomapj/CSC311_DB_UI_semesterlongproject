@@ -1,66 +1,39 @@
 package service;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.prefs.Preferences;
-
 public class UserSession {
 
     private static UserSession instance;
-
-    private String userName;
-
+    private String username;
     private String password;
-    private String privileges;
 
-    private UserSession(String userName, String password, String privileges) {
-        this.userName = userName;
+    private UserSession(String username, String password) {
+        this.username = username;
         this.password = password;
-        this.privileges = privileges;
-        Preferences userPreferences = Preferences.userRoot();
-        userPreferences.put("USERNAME",userName);
-        userPreferences.put("PASSWORD",password);
-        userPreferences.put("PRIVILEGES",privileges);
     }
 
-
-
-    public static UserSession getInstace(String userName,String password, String privileges) {
-        if(instance == null) {
-            instance = new UserSession(userName, password, privileges);
+    public static synchronized UserSession getInstance(String username, String password) {
+        if (instance == null) {
+            instance = new UserSession(username, password);
         }
         return instance;
     }
 
-    public static UserSession getInstace(String userName,String password) {
-        if(instance == null) {
-            instance = new UserSession(userName, password, "NONE");
+    public static synchronized UserSession getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("User is not logged in.");
         }
         return instance;
     }
-    public String getUserName() {
-        return this.userName;
+
+    public static synchronized void clearSession() {
+        instance = null;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public String getPassword() {
-        return this.password;
-    }
-
-    public String getPrivileges() {
-        return this.privileges;
-    }
-
-    public void cleanUserSession() {
-        this.userName = "";// or null
-        this.password = "";
-        this.privileges = "";// or null
-    }
-
-    @Override
-    public String toString() {
-        return "UserSession{" +
-                "userName='" + this.userName + '\'' +
-                ", privileges=" + this.privileges +
-                '}';
+        return password;
     }
 }
